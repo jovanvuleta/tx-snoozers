@@ -1,8 +1,8 @@
 from dotenv import load_dotenv
 from fastapi import FastAPI
 
-from config import initiate_database
-from routes.signed_tx import router as SignedTx
+from backend.config import initiate_database
+from backend.routes.signed_tx import router as SignedTx
 
 load_dotenv()
 app = FastAPI()
