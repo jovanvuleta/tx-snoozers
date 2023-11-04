@@ -33,7 +33,7 @@ async def get_signed_txs(request: Request):
     fname = get_signed_txs.__name__
     logger.info(fname)
 
-    signed_txs = await SignedTx.find_all(SignedTx.is_sent == False).to_list()
+    signed_txs = await SignedTx.find(SignedTx.is_sent == False).to_list()
 
     if not signed_txs:
         err_msg = "Transactions not found."
