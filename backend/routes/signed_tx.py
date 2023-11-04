@@ -73,16 +73,23 @@ async def check_if_gas_is_right(request: Request):
 
         logger.info("Gas price is acceptable. Sending the transaction...")
         tx_receipt = None
-        tx_hash = w3.eth.send_raw_transaction(transaction=tx.signed_tx_hex)
+
+        try:
+            tx_hash = w3.eth.send_raw_transaction(transaction=tx.signed_tx_hex)
+        except ValueError as e:
+            logger.error(f"Nonce too low error for signature hash: {tx.signed_tx_hex}, skipping...")
+            logger.error(e)
+            continue
+
         retries = 5
         while retries > 0:
             try:
                 tx_receipt = w3.eth.get_transaction_receipt(transaction_hash=tx_hash)
                 break
             except TransactionNotFound as e:
-                logger.info("sleeping...")
-                sleep(10)
                 logger.error(e)
+                logger.info("Tx not found, sleeping for 10...")
+                sleep(10)
                 retries -= 1
 
         if tx_receipt:
