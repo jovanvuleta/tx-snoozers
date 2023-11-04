@@ -14,6 +14,7 @@ logger = get_logger()
 origins = [
     "http://localhost:8080",
     "http://localhost:3000",
+    "https://tx-snoozers.vercel.app",
 ]
 
 app.add_middleware(
