@@ -36,7 +36,7 @@ async def get_signed_txs(request: Request):
     signed_txs = await SignedTx.find(SignedTx.is_sent == False).to_list()
 
     if not signed_txs:
-        err_msg = "Transactions not found."
+        err_msg = "No pending signed transactions."
         logger.error(f"{fname}: {err_msg}")
         raise HTTPException(status_code=400, detail=err_msg)
 
