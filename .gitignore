@@ -1,0 +1,26 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+*.pyo
+__pycache__
+
+# Dependency directories
+backend/.env/
+lib/
+lib64/
+local/
+node_modules/
+venv/
+env/
+*.env
+.env.*
+
+*.pyd
+.Python
+
+# IDE files
+.vscode/
+.idea/
+
+# Environment
+.env
