@@ -4,7 +4,7 @@ from beanie import init_beanie
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic.v1.env_settings import BaseSettings
 
-import models
+import backend.models as models
 
 
 class Settings(BaseSettings):
