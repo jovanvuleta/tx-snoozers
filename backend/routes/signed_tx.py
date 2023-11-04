@@ -5,25 +5,40 @@ from typing import List
 from fastapi import HTTPException, APIRouter, Request
 from web3.exceptions import TransactionNotFound
 
+from backend.helpers.logger import get_logger
 from backend.models import SignedTx
 from backend.models.signed_tx import SignedTxCreate, NewPendingTx
 
 router = APIRouter()
 
+logger = get_logger()
+
 
 @router.post("/", response_model=SignedTx)
 async def create_signed_tx(signed_tx_create: SignedTxCreate):
-    signed_tx = SignedTx(**signed_tx_create.model_dump())
-    await signed_tx.insert()
-    return signed_tx
+    fname = create_signed_tx.__name__
+    logger.info(fname)
+
+    signature_tx: SignedTx = await SignedTx.find_one(SignedTx.signed_tx_hex == signed_tx_create.signed_tx_hex)
+    if signature_tx:
+        raise HTTPException(status_code=400, detail="Signature tx already exists.")
+
+    new_signed_tx = SignedTx(**signed_tx_create.model_dump())
+    await new_signed_tx.insert()
+    return new_signed_tx
 
 
 @router.get("/")
 async def get_signed_txs(request: Request):
+    fname = get_signed_txs.__name__
+    logger.info(fname)
+
     signed_txs = await SignedTx.find_all().to_list()
 
     if not signed_txs:
-        raise HTTPException(status_code=400, detail="Txs not found.")
+        err_msg = "Transactions not found."
+        logger.error(f"{fname}: {err_msg}")
+        raise HTTPException(status_code=400, detail=err_msg)
 
     return {
         "data": signed_txs,
@@ -32,26 +47,31 @@ async def get_signed_txs(request: Request):
 
 @router.get("/pending")
 async def check_if_gas_is_right(request: Request):
+    fname = check_if_gas_is_right.__name__
+    logger.info(fname)
+
     from web3 import Web3, HTTPProvider
     from web3.gas_strategies.rpc import rpc_gas_price_strategy
     from web3.middleware import geth_poa_middleware
 
-    w3 = Web3(HTTPProvider("https://rpc.sepolia.org/"))
+    w3 = Web3(HTTPProvider(os.environ.get("RPC_URL")))
     w3.middleware_onion.inject(geth_poa_middleware, layer=0)
     w3.eth.set_gas_price_strategy(rpc_gas_price_strategy)
 
     signed_txs: List[SignedTx] = await SignedTx.find_many(SignedTx.is_sent == False).to_list()
 
     if not signed_txs:
-        raise HTTPException(status_code=400, detail="No unsigned transactions pending")
+        err_msg = "No unsigned transactions pending"
+        logger.error(f"{fname}: {err_msg}")
+        raise HTTPException(status_code=400, detail=err_msg)
 
     for tx in signed_txs:
         current_gas_price = w3.eth.gas_price
         if current_gas_price > tx.gwei_threshold:
-            print("Gas price still not low enough...")
+            logger.info("Gas price still not low enough, skipping tx...")
             continue
 
-        print("Gas price is acceptable. Sending the transaction...")
+        logger.info("Gas price is acceptable. Sending the transaction...")
         tx_receipt = None
         tx_hash = w3.eth.send_raw_transaction(transaction=tx.signed_tx_hex)
         retries = 5
@@ -60,15 +80,15 @@ async def check_if_gas_is_right(request: Request):
                 tx_receipt = w3.eth.get_transaction_receipt(transaction_hash=tx_hash)
                 break
             except TransactionNotFound as e:
-                print("sleeping...")
+                logger.info("sleeping...")
                 sleep(10)
-                print(e)
+                logger.error(e)
                 retries -= 1
 
         if tx_receipt:
             tx_status = tx_receipt["status"]
 
-            print(f"Transaction hash: {tx_hash.hex()} -> status: {tx_status}")
+            logger.info(f"Transaction hash: {tx_hash.hex()} -> status: {tx_status}")
             if tx_status == 1:
                 tx.is_sent = True
                 tx.is_successful = True
@@ -79,16 +99,12 @@ async def check_if_gas_is_right(request: Request):
 
 @router.post("/pending", response_model=SignedTx)
 async def generate_pending_tx(new_tx: NewPendingTx):
+    fname = generate_pending_tx.__name__
+    logger.info(fname)
+
     from web3 import Web3, HTTPProvider
-    from web3.gas_strategies.rpc import rpc_gas_price_strategy
-    from web3.middleware import geth_poa_middleware
 
-    w3 = Web3(HTTPProvider("https://rpc.sepolia.org/"))
-    w3.middleware_onion.inject(geth_poa_middleware, layer=0)
-    w3.eth.set_gas_price_strategy(rpc_gas_price_strategy)
-
-    current_gas_price = w3.eth.gas_price
-    print(f"Current Gas Price: {current_gas_price} Gwei")
+    w3 = Web3(HTTPProvider(os.environ.get("RPC_URL")))
 
     tx_create = w3.eth.account.sign_transaction(
         {
@@ -102,11 +118,13 @@ async def generate_pending_tx(new_tx: NewPendingTx):
         os.environ.get("PK")
     )
 
-    print(tx_create.rawTransaction)
+    logger.info(tx_create.rawTransaction)
     signature_hash_str = tx_create.rawTransaction.hex()
-    print(f"Signed tx hash: {signature_hash_str}")
+    logger.info(f"Signed tx hash: {signature_hash_str}")
 
     signed_tx = SignedTx(signed_tx_hex=signature_hash_str, gwei_threshold=new_tx.gwei_threshold)
     await signed_tx.save()
-    return signed_tx
 
+    logger.info("Saved new signed tx")
+
+    return signed_tx
