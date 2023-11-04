@@ -1,5 +1,5 @@
 import { Alchemy, Network } from "alchemy-sdk";
-import { polygon, polygonMumbai } from "viem/chains";
+import { polygon, polygonMumbai, sepolia } from "viem/chains";
 
 type GetTokensInWalletProps = {
   address: string;
@@ -31,6 +31,7 @@ const getTokensInWallet = async ({
 const chainIdToNetwork = {
   137: Network.MATIC_MAINNET,
   80001: Network.MATIC_MUMBAI,
+  11155111: Network.ETH_SEPOLIA,
 };
 
 export default getTokensInWallet;
