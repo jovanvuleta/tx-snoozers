@@ -1,7 +1,7 @@
 import "../styles/globals.css";
 import { createWeb3Modal, defaultWagmiConfig } from "@web3modal/wagmi/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { WagmiConfig } from "wagmi";
+import { WagmiConfig, sepolia } from "wagmi";
 import type { AppProps } from "next/app";
 import { useEffect, useState } from "react";
 import {
@@ -14,6 +14,8 @@ import {
   optimism,
   polygon,
 } from "wagmi/chains";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const chains = [
   mainnet,
@@ -24,6 +26,7 @@ const chains = [
   optimism,
   gnosis,
   fantom,
+  sepolia,
 ];
 
 // 1. Get projectID at https://cloud.walletconnect.com
@@ -56,6 +59,7 @@ export default function App({ Component, pageProps }: AppProps) {
         <QueryClientProvider client={queryClient}>
           <WagmiConfig config={wagmiConfig}>
             <Component {...pageProps} />
+            <ToastContainer />
           </WagmiConfig>
         </QueryClientProvider>
       ) : null}
