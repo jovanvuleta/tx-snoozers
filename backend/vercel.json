@@ -1,0 +1,21 @@
+{
+  "version": 2,
+  "public": false,
+  "devCommand": "python3 main.py",
+  "installCommand": "pip install -r requirements.txt",
+  "builds": [
+    {
+      "src": "/backend/main.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "crons": [
+
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "app.py"
+    }
+  ]
+}
