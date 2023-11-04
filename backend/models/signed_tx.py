@@ -10,6 +10,16 @@ class SignedTx(Document):
     is_sent: bool = Field(default=False)
     is_successful: bool = Field(default=False)
 
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "signed_tx_hex": "0x0000000000000000000000000000000000000000",
+                "gwei_threshold": 1,
+                "is_sent": False,
+                "is_successful": False,
+            }
+        }
+
     class Settings:
         name = "signedtx"
 

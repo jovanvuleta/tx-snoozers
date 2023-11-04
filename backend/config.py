@@ -5,6 +5,9 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic.v1.env_settings import BaseSettings
 
 import backend.models as models
+from backend.helpers.logger import get_logger
+
+logger = get_logger()
 
 
 class Settings(BaseSettings):
