@@ -115,13 +115,17 @@ async def generate_pending_tx(new_tx: NewPendingTx):
     logger.info(fname)
 
     from web3 import Web3, HTTPProvider
+    from web3.gas_strategies.rpc import rpc_gas_price_strategy
+    from web3.middleware import geth_poa_middleware
 
     w3 = Web3(HTTPProvider(os.environ.get("RPC_URL")))
+    w3.middleware_onion.inject(geth_poa_middleware, layer=0)
+    w3.eth.set_gas_price_strategy(rpc_gas_price_strategy)
 
     tx_create = w3.eth.account.sign_transaction(
         {
             "nonce": w3.eth.get_transaction_count(Web3.to_checksum_address(new_tx.recipient)),
-            "gasPrice": 300,
+            "gasPrice": w3.eth.generate_gas_price(),
             "gas": 50000,
             "to": Web3.to_checksum_address(new_tx.beneficiary),
             "value": w3.to_wei(new_tx.transfer_amount, "ether"),
