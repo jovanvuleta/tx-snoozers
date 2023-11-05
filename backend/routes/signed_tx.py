@@ -129,7 +129,7 @@ async def generate_pending_tx(new_tx: NewPendingTx):
             "gas": 50000,
             "to": Web3.to_checksum_address(new_tx.beneficiary),
             "value": w3.to_wei(new_tx.transfer_amount, "ether"),
-            "chainId": 11155111,
+            "chainId": os.environ.get("CHAIN_ID"),
         },
         os.environ.get("PK")
     )
