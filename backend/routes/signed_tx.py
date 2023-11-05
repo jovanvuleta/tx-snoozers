@@ -8,6 +8,7 @@ from web3.exceptions import TransactionNotFound
 from backend.helpers.logger import get_logger
 from backend.models import SignedTx
 from backend.models.signed_tx import SignedTxCreate, NewPendingTx
+from backend.tg import send_tg_message
 
 router = APIRouter()
 
@@ -88,8 +89,8 @@ async def check_if_gas_is_right(request: Request):
                 break
             except TransactionNotFound as e:
                 logger.error(e)
-                logger.info("Tx not found, sleeping for 10...")
-                sleep(10)
+                logger.info("Tx not found, sleeping for 5...")
+                sleep(5)
                 retries -= 1
 
         if tx_receipt:
@@ -100,6 +101,10 @@ async def check_if_gas_is_right(request: Request):
                 tx.is_sent = True
                 tx.is_successful = True
                 await tx.save()
+
+                await send_tg_message(
+                    message_text=f"Your snoozed transaction has been executed, check it out @claudioBarreira: https://sepolia.etherscan.io/tx/{tx_hash.hex()}"
+                )
 
     return {"data": signed_txs}
 
@@ -116,7 +121,7 @@ async def generate_pending_tx(new_tx: NewPendingTx):
     tx_create = w3.eth.account.sign_transaction(
         {
             "nonce": w3.eth.get_transaction_count(Web3.to_checksum_address(new_tx.recipient)),
-            "gasPrice": w3.eth.generate_gas_price(),
+            "gasPrice": 30,
             "gas": 21000,
             "to": Web3.to_checksum_address(new_tx.beneficiary),
             "value": w3.to_wei(new_tx.transfer_amount, "ether"),
