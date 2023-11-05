@@ -121,8 +121,8 @@ async def generate_pending_tx(new_tx: NewPendingTx):
     tx_create = w3.eth.account.sign_transaction(
         {
             "nonce": w3.eth.get_transaction_count(Web3.to_checksum_address(new_tx.recipient)),
-            "gasPrice": 30,
-            "gas": 21000,
+            "gasPrice": 300,
+            "gas": 50000,
             "to": Web3.to_checksum_address(new_tx.beneficiary),
             "value": w3.to_wei(new_tx.transfer_amount, "ether"),
             "chainId": 11155111,
