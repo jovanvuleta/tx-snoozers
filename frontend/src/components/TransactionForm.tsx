@@ -196,6 +196,14 @@ const TransactionForm: FC = () => {
               />
             </InputCard>
 
+            <InputCard>
+              <div className="text-sm mb-2">Telegram handle (optional)</div>
+              <input
+                placeholder="Handle"
+                className="placeholder-[#3b3b3b] text-white pointer-events-auto relative text-xl w-full outline-0 bg-transparent whitespace-nowrap overflow-hidden text-ellipsis"
+              />
+            </InputCard>
+
             <div className="flex w-full items-center justify-between">
               <button
                 className="btn btn-primary w-full"
