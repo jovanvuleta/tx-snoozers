@@ -4,7 +4,7 @@ from telegram import Bot
 from telegram.error import BadRequest
 
 bot_token = os.environ.get("BOT_TOKEN")
-chat_id = os.environ.get("BOT_TOKEN")
+chat_id = os.environ.get("CHAT_ID")
 bot = Bot(token=bot_token)
 
 
